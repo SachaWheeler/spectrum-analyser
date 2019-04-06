@@ -5,11 +5,9 @@
 #define DC_Two A1
 
 int freq_amp;
-int Frequencies_One[7];
-int Frequencies_Two[7]; 
+int Frequencies_Left[7];
+int Frequencies_Right[7]; 
 int i;
-
-
 
 void setup() {
   Serial.begin(9600);
@@ -39,8 +37,8 @@ void Read_Frequencies(){
   //Read frequencies for each band
   for (freq_amp = 0; freq_amp<7; freq_amp++)
   {
-    Frequencies_One[freq_amp] = analogRead(DC_One);
-    Frequencies_Two[freq_amp] = analogRead(DC_Two); 
+    Frequencies_Left[freq_amp] = analogRead(DC_One);
+    Frequencies_Right[freq_amp] = analogRead(DC_Two); 
     digitalWrite(STROBE, HIGH);
     digitalWrite(STROBE, LOW);
   }
@@ -50,7 +48,7 @@ void Graph_Frequencies(){
    Serial.print("F1:   ");
    for( i= 0; i<7; i++)
    {
-     Serial.print(Frequencies_One[i]);
+     Serial.print(Frequencies_Left[i]);
      Serial.print("  ");
      
    }
@@ -58,7 +56,7 @@ void Graph_Frequencies(){
    Serial.print("F2:   ");
    for( i= 0; i<7; i++)
    {
-     Serial.print(Frequencies_Two[i]);
+     Serial.print(Frequencies_Right[i]);
      Serial.print("  ");
      
    }
