@@ -33,6 +33,7 @@ int i;
 int RED_THRESHOLD = 13;
 int YELLOW_THRESHOLD = 9;
 int GREEN_THRESHOLD = 6;
+int row_max[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // matrix connections
 #define CLK 8  // MUST be on PORTB!
@@ -118,39 +119,59 @@ void PlotFrequencies() {
   matrix.swapBuffers(false);
 }
 
-void lightcolumns(int rownum, int amp_1024)
+void lightcolumns(int row_num, int amp_1024)
 {
-    int amplitude = amp_1024 / 16;
-    // Serial.print("amplitude:");
-    Serial.println(amplitude);
-  
-  // will probably need to normalise the data to the amplitude range
+  int amplitude = amp_1024 / 16;
+  // Serial.print("amplitude:");
+  // Serial.println(amplitude);
 
   if (amplitude > RED_THRESHOLD) // <-O-> set the threshold for the band to turn red
   {
-    for ( int y = 0; y < amplitude; y++)
-      matrix.drawPixel(rownum, 15-y, matrix.Color333(7, 0, 0));
-    for (int y = amplitude; y < 16; y++)
-      matrix.drawPixel(rownum, 15-y, matrix.Color333(0, 0, 0));
-      
-  }else if (amplitude > YELLOW_THRESHOLD){ // <-O-> set the threshold for the band to turn yellow
-    for ( int y = 0; y < amplitude; y++)
-      matrix.drawPixel(rownum, 15-y, matrix.Color333(4, 4, 0));
-    for (int y = amplitude; y < 16; y++)
-      matrix.drawPixel(rownum, 15-y, matrix.Color333(0, 0, 0));
-      
-  }else if (amplitude > GREEN_THRESHOLD){ // <-O-> set the threshold for the band to turn green
-    for ( int y = 0; y < amplitude; y++)
-      matrix.drawPixel(rownum, 15-y, matrix.Color333(0, 5, 0));
-    for (int y = amplitude; y < 16; y++)
-      matrix.drawPixel(rownum, 15-y, matrix.Color333(0, 0, 0));
-      
-  }else{
-    for ( int y = 0; y < amplitude; y++)
-      matrix.drawPixel(rownum, 15-y, matrix.Color333(0, 0, 7));
-    for (int y = amplitude; y < 16; y++)
-      matrix.drawPixel(rownum, 15-y, matrix.Color333(0, 0, 0));
+    for ( int y = 0; y < amplitude; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(7, 0, 0));
+    for (int y = amplitude; y < 16; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
+
+  } else if (amplitude > YELLOW_THRESHOLD) { // <-O-> set the threshold for the band to turn yellow
+    for ( int y = 0; y < amplitude; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(4, 4, 0));
+    for (int y = amplitude; y < 16; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
+
+  } else if (amplitude > GREEN_THRESHOLD) { // <-O-> set the threshold for the band to turn green
+    for ( int y = 0; y < amplitude; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 5, 0));
+    for (int y = amplitude; y < 16; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
+
+  } else {
+    for ( int y = 0; y < amplitude; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 7));
+    for (int y = amplitude; y < 16; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
   }
+}
+
+void snowfall(int row_num, int amp_1024)
+{
+  int amplitude = amp_1024 / 16;
+
+  // Serial.println(amplitude);
+
+  if (amplitude > row_max[row_num]) {
+    row_max[row_num] = amplitude;
+  } else {
+    row_max[row_num] -= 1;
+    amplitude = row_max[row_num];
+  }
+
+  for ( int y = 0; y < 16; y++) {
+    if (y == amplitude) {
+      if (amplitude > RED_THRESHOLD)
+        matrix.drawPixel(row_num, 15 - y, matrix.Color333(7, 0, 0));
+      else if (amplitude > YELLOW_THRESHOLD)
+        matrix.drawPixel(row_num, 15 - y, matrix.Color333(4, 4, 0));
+      else if (amplitude > GREEN_THRESHOLD)
+        matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 5, 0));
+      else
+        matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 7));
+    } else {
+      matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
+    }
+  }
+
 }
 
 
