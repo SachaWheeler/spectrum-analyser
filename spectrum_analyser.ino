@@ -20,35 +20,38 @@
 #include <SPI.h>
 
 //Declare Spectrum Shield pin connections
-#define STROBE 4
-#define RESET 5
-#define DC_One A0
-#define DC_Two A1
+#define STROBE 12 // 4 on the shield, moved on the arduino due to library conflict with RGBmatrixPanel
+#define RESET 13 // 5 on the shield, moved on the arduino
+#define CHANNEL_ONE  A4 // A0 moved
+#define CHANNEL_TWO A5 // A1 moved
 
 int freq_amp;
-int Frequencies_Left[7];
-int Frequencies_Right[7];
+int freq_left[7];
+int freq_right[7];
 int i;
+
+int RED_THRESHOLD = 15;
+int YELLOW_THRESHOLD = 13;
+int GREEN_THRESHOLD = 9;
 
 // matrix connections
 #define CLK 8  // MUST be on PORTB!
-#define LAT A3
+#define LAT 10 // LAT == STROBE
 #define OE  9
-#define A   A0 // move this
-#define B   A1 // move this
+#define A   A0
+#define B   A1
 #define C   A2
-// RGBmatrixPanel matrix(A, B, C, CLK, LAT, OE, true);
-
+RGBmatrixPanel matrix(A, B, C, CLK, LAT, OE, true);
 
 void setup() {
   Serial.begin(9600);
-  // matrix.begin();  
+  // matrix.begin();
 
   //Set spectrum Shield pin configurations
   pinMode(STROBE, OUTPUT);
   pinMode(RESET, OUTPUT);
-  pinMode(DC_One, INPUT);
-  pinMode(DC_Two, INPUT);
+  pinMode(CHANNEL_ONE, INPUT);
+  pinMode(CHANNEL_TWO, INPUT);
   digitalWrite(STROBE, HIGH);
   digitalWrite(RESET, HIGH);
 
@@ -69,80 +72,120 @@ void ReadFrequencies() {
   //Read frequencies for each band
   for (freq_amp = 0; freq_amp < 7; freq_amp++)
   {
-    Frequencies_Left[freq_amp] = analogRead(DC_One);
-    Frequencies_Right[freq_amp] = analogRead(DC_Two);
+    freq_left[freq_amp] = analogRead(CHANNEL_ONE);
+    freq_right[freq_amp] = analogRead(CHANNEL_TWO);
     digitalWrite(STROBE, HIGH);
     digitalWrite(STROBE, LOW);
   }
 }
 
 void SerialOutput() {
-  Serial.print("F1:   ");
+  Serial.print("Left:   ");
   for ( i = 0; i < 7; i++)
   {
-    Serial.print(Frequencies_Left[i]);
+    Serial.print(freq_left[i]);
     Serial.print("  ");
-
   }
   Serial.println();
-  Serial.print("F2:   ");
+  Serial.print("Right:   ");
   for ( i = 0; i < 7; i++)
   {
-    Serial.print(Frequencies_Right[i]);
+    Serial.print(freq_right[i]);
     Serial.print("  ");
-
   }
   Serial.println();
 }
 
-void PlotFrequencies(){
-    
+void PlotFrequencies() {
+  lightcolumns(0, 0);
+  for (int i = 1; i < 15; i += 2){
+   int idx = (i - 1) / 2;
+   lightcolumns(i, freq_left[idx]); 
+   lightcolumns(i+1, freq_left[idx]); 
+  }
+
+  lightcolumns(15, 0);
+  lightcolumns(16, 0);
+  
+  for (int j = 17; j < 31; j += 2){
+   int idx = (j - 17) / 2;
+   lightcolumns(j, freq_right[idx]); 
+   lightcolumns(j+1, freq_right[idx]); 
+  }
+  lightcolumns(31, 0);
+
+  /*
+  lightcolumns(31, 0);
+  lightcolumns(30, freq_right[6]);
+  lightcolumns(29, freq_right[6]);
+  lightcolumns(28, freq_right[5]);
+  lightcolumns(27, freq_right[5]);
+  lightcolumns(26, freq_right[4]);
+  lightcolumns(25, freq_right[4]);
+  lightcolumns(24, freq_right[3]);
+  lightcolumns(23, freq_right[3]);
+  lightcolumns(22, freq_right[2]);
+  lightcolumns(21, freq_right[2]);
+  lightcolumns(20, freq_right[1]);
+  lightcolumns(19, freq_right[1]);
+  lightcolumns(18, freq_right[0]);
+  lightcolumns(17, freq_right[0]);
+  lightcolumns(16, 0);
+  lightcolumns(15, 0);
+  lightcolumns(14, freq_left[6]);
+  lightcolumns(13, freq_left[6]);
+  lightcolumns(12, freq_left[5]);
+  lightcolumns(11, freq_left[5]);
+  lightcolumns(10, freq_left[4]);
+  lightcolumns(9, freq_left[4]);
+  lightcolumns(8, freq_left[3]);
+  lightcolumns(7, freq_left[3]);
+  lightcolumns(6, freq_left[2]);
+  lightcolumns(5, freq_left[2]);
+  lightcolumns(4, freq_left[1]);
+  lightcolumns(3, freq_left[1]);
+  lightcolumns(2, freq_left[0]);
+  lightcolumns(1, freq_left[0]);
+  lightcolumns(0, 0);
+  */
+  
+  matrix.swapBuffers(false);
 }
 
 void lightcolumns(int rownum, int amplitude)
 {
-  if (amplitude > 15) // <-O-> set the threshold for the band to turn red
+  // will probably need to normalise the data to the amplitude range
+  
+  if (amplitude > RED_THRESHOLD) // <-O-> set the threshold for the band to turn red
   {
-    for ( int y = 0; y < amplitude; y++) {
+    for ( int y = 0; y < amplitude; y++)
       matrix.drawPixel(rownum, y, matrix.Color333(7, 0, 0));
-    }
     for (int y = amplitude; y < 16; y++)
-    {
       matrix.drawPixel(rownum, y, matrix.Color333(0, 0, 0));
-    }
   }
 
-  else if (amplitude > 13) // <-O-> set the threshold for the band to turn yellow
+  else if (amplitude > YELLOW_THRESHOLD) // <-O-> set the threshold for the band to turn yellow
   {
-    for ( int y = 0; y < amplitude; y++) {
+    for ( int y = 0; y < amplitude; y++)
       matrix.drawPixel(rownum, y, matrix.Color333(4, 4, 0));
-    }
     for (int y = amplitude; y < 16; y++)
-    {
       matrix.drawPixel(rownum, y, matrix.Color333(0, 0, 0));
-    }
   }
 
-  else if (amplitude > 9) // <-O-> set the threshold for the band to turn green
+  else if (amplitude > GREEN_THRESHOLD) // <-O-> set the threshold for the band to turn green
   {
-    for ( int y = 0; y < amplitude; y++) {
+    for ( int y = 0; y < amplitude; y++)
       matrix.drawPixel(rownum, y, matrix.Color333(0, 5, 0));
-    }
     for (int y = amplitude; y < 16; y++)
-    {
       matrix.drawPixel(rownum, y, matrix.Color333(0, 0, 0));
-    }
   }
 
   else
   {
-    for ( int y = 0; y < amplitude; y++) {
+    for ( int y = 0; y < amplitude; y++)
       matrix.drawPixel(rownum, y, matrix.Color333(0, 0, 7));
-    }
     for (int y = amplitude; y < 16; y++)
-    {
       matrix.drawPixel(rownum, y, matrix.Color333(0, 0, 0));
-    }
   }
 }
 
@@ -152,6 +195,6 @@ void loop() {
   ReadFrequencies();
   SerialOutput();
   PlotFrequencies();
-  delay(1500);
 
+  delay(1500);
 }
