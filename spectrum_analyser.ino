@@ -123,27 +123,7 @@ void PlotFrequencies() {
 
 void lightcolumns(int row_num, int amp_1024)
 {
-  int amplitude = int(amp_1024 / 64);
-  // Serial.print("amplitude:");
-  // Serial.println(amplitude);
-  /*
-  if      (amp_1024 > 959) amplitude = 15;
-  else if (amp_1024 > 895) amplitude = 14;
-  else if (amp_1024 > 831) amplitude = 13;
-  else if (amp_1024 > 767) amplitude = 12;
-  else if (amp_1024 > 703) amplitude = 11;
-  else if (amp_1024 > 639) amplitude = 10;
-  else if (amp_1024 > 575) amplitude = 9;
-  else if (amp_1024 > 511) amplitude = 8;
-  else if (amp_1024 > 447) amplitude = 7;
-  else if (amp_1024 > 383) amplitude = 6;
-  else if (amp_1024 > 319) amplitude = 5;
-  else if (amp_1024 > 255) amplitude = 4;
-  else if (amp_1024 > 191) amplitude = 3;
-  else if (amp_1024 > 127) amplitude = 2;
-  else if (amp_1024 > 63) amplitude = 1;
-  else if (amp_1024 > 0) amplitude = 0;
-  */
+  int amplitude = int(amp_1024 / 16);
 
   if (mode == 0) { // add a momentary button to cycle through modes
     // normal
@@ -161,7 +141,7 @@ void lightcolumns(int row_num, int amp_1024)
           for (int y = amplitude; y < 16; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
         } */
     for ( int y = 0; y < 16; y++) {
-      if (amplitude <= y) {
+      if (amplitude > y) {
         if (amplitude > RED_THRESHOLD)
           matrix.drawPixel(row_num, 15 - y, matrix.Color333(7, 0, 0));
         else if (amplitude > YELLOW_THRESHOLD)
@@ -209,5 +189,5 @@ void loop() {
   // SerialOutput();
   PlotFrequencies();
 
-  delay(50);
+  // delay(50);
 }
