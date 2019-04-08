@@ -30,9 +30,9 @@ int freq_left[7];
 int freq_right[7];
 int i;
 
-int RED_THRESHOLD = 13;
-int YELLOW_THRESHOLD = 9;
-int GREEN_THRESHOLD = 6;
+int RED_THRESHOLD = 14;
+int YELLOW_THRESHOLD = 11;
+int GREEN_THRESHOLD = 5;
 int row_max[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // matrix connections
@@ -123,30 +123,23 @@ void PlotFrequencies() {
 
 void lightcolumns(int row_num, int amp_1024)
 {
-  int amplitude = int(amp_1024 / 16);
+  // Serial.print("Amplitude: ");
+  // Serial.print(amp_1024);
+  // Serial.print(" - ");
+  
+  int amplitude = int(amp_1024 / 64);
+  // Serial.println(amplitude);
 
   if (mode == 0) { // add a momentary button to cycle through modes
     // normal
-    /* if (amplitude > RED_THRESHOLD) // <-O-> set the threshold for the band to turn red{
-          for ( int y = 0; y < amplitude; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(7, 0, 0));
-          for (int y = amplitude; y < 16; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
-        } else if (amplitude > YELLOW_THRESHOLD) { // <-O-> set the threshold for the band to turn yellow
-          for ( int y = 0; y < amplitude; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(4, 4, 0));
-          for (int y = amplitude; y < 16; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
-        } else if (amplitude > GREEN_THRESHOLD) { // <-O-> set the threshold for the band to turn green
-          for ( int y = 0; y < amplitude; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 5, 0));
-          for (int y = amplitude; y < 16; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
-        } else {
-          for ( int y = 0; y < amplitude; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 7));
-          for (int y = amplitude; y < 16; y++) matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
-        } */
+    
     for ( int y = 0; y < 16; y++) {
-      if (amplitude > y) {
-        if (amplitude > RED_THRESHOLD)
+      if (amplitude >= y) {
+        if (amplitude >= RED_THRESHOLD)
           matrix.drawPixel(row_num, 15 - y, matrix.Color333(7, 0, 0));
-        else if (amplitude > YELLOW_THRESHOLD)
+        else if (amplitude >= YELLOW_THRESHOLD)
           matrix.drawPixel(row_num, 15 - y, matrix.Color333(4, 4, 0));
-        else if (amplitude > GREEN_THRESHOLD)
+        else if (amplitude >= GREEN_THRESHOLD)
           matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 5, 0));
         else
           matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 7));
@@ -189,5 +182,5 @@ void loop() {
   // SerialOutput();
   PlotFrequencies();
 
-  // delay(50);
+  delay(30);
 }
