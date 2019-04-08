@@ -128,6 +128,7 @@ void lightcolumns(int row_num, int amp_1024)
   // Serial.println(amplitude);
 
   if (mode == 0) { // add a momentary button to cycle through modes
+    // normal
     
     if (amplitude > RED_THRESHOLD) // <-O-> set the threshold for the band to turn red
     {
@@ -148,6 +149,7 @@ void lightcolumns(int row_num, int amp_1024)
     }
 
   } else {
+    // snowfall
 
     if (amplitude >= row_max[row_num]) {
       row_max[row_num] = amplitude;
