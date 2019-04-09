@@ -108,6 +108,7 @@ void SerialOutput() {
 }
 
 void PlotFrequencies() {
+
   // lightcolumns(0, 0);
   int left_total = 0;
   int right_total = 0;
@@ -143,16 +144,15 @@ void PlotFrequencies() {
 
 void lightcolumns(int row_num, int amp_1024)
 {
-  if (amp_1024 > 32) amp_1024 -= 32;
+  if (amp_1024 > 32) amp_1024 -= 32;  // trim some low end noise
   else amp_1024 = 0;
 
   int amplitude = int((amp_1024 * sensitivity) / 63.5);
 
-  if (amplitude > amp_max) amp_max = amplitude;
-  if (amp_max > 15) amp_max = 15;
+  if (amplitude > amp_max && amplitude < 16) amp_max = amplitude;
 
   for ( int y = 0; y < 16; y++) {
-    
+
     if (row_num == 15 || row_num == 16) {
       if (y == amplitude)
         matrix.drawPixel(row_num, 15 - y, matrix.Color333(7, 7, 7));
@@ -163,10 +163,13 @@ void lightcolumns(int row_num, int amp_1024)
 
       if (amplitude >= RED_THRESHOLD)
         matrix.drawPixel(row_num, 15 - y, matrix.Color333(7, 0, 0));
+
       else if (amplitude >= YELLOW_THRESHOLD)
         matrix.drawPixel(row_num, 15 - y, matrix.Color333(4, 4, 0));
+
       else if (amplitude >= GREEN_THRESHOLD)
         matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 5, 0));
+
       else
         matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 7));
 
