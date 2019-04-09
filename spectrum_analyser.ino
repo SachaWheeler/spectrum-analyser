@@ -29,10 +29,11 @@ int freq_amp;
 int freq_left[7];
 int freq_right[7];
 int i;
+int amp_max;
 
-int RED_THRESHOLD = 14;
-int YELLOW_THRESHOLD = 11;
-int GREEN_THRESHOLD = 5;
+int RED_THRESHOLD = 12;
+int YELLOW_THRESHOLD = 8;
+int GREEN_THRESHOLD = 6;
 int row_max[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 // matrix connections
@@ -45,6 +46,12 @@ int row_max[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 RGBmatrixPanel matrix(A, B, C, CLK, LAT, OE, false);
 
 int mode = 0;
+
+// sensitivity
+int sensitivity = 2; // this could come from a pot
+const int MAX_SENSITIVITY = 12;
+unsigned long previousMillis = 0;
+const long interval = 1000;
 
 void setup() {
   Serial.begin(9600);
@@ -102,10 +109,15 @@ void SerialOutput() {
 
 void PlotFrequencies() {
   // lightcolumns(0, 0);
+
+  int average_total = 0;
+
   for (int i = 1; i < 15; i += 2) {
     int idx = (i - 1) / 2;
     lightcolumns(i, freq_left[idx]);
     lightcolumns(i + 1, freq_left[idx]);
+    average_total += freq_left[idx];
+    average_total += freq_left[idx];
   }
 
   // lightcolumns(15, 0);
@@ -115,68 +127,73 @@ void PlotFrequencies() {
     int idx = (j - 17) / 2;
     lightcolumns(j, freq_right[idx]);
     lightcolumns(j + 1, freq_right[idx]);
+    average_total += freq_right[idx];
+    average_total += freq_right[idx];
+
   }
-  // lightcolumns(31, 0);
+
+  // lightcolumns(31, sensitivity - 1);
+  for ( int y = 0; y < 16; y++) {
+    // Serial.print(y);
+    // Serial.print(" ");
+    // Serial.println(sensitivity);
+    if (y == sensitivity) matrix.drawPixel(31, y, matrix.Color333(7, 7, 7));
+    else  matrix.drawPixel(31, y, matrix.Color333(0, 0, 0));
+  }
+
+  int average = int(average_total / 14);
+  //Serial.println(average);
+  if (average < 100)
+    amp_max = 0;
 
   matrix.swapBuffers(false);
 }
 
 void lightcolumns(int row_num, int amp_1024)
 {
-  // Serial.print("Amplitude: ");
-  // Serial.print(amp_1024);
-  // Serial.print(" - ");
-  
-  int amplitude = int(amp_1024 / 64);
-  // Serial.println(amplitude);
+  if (amp_1024 > 32) amp_1024 -= 32;
+  else amp_1024 = 0;
 
-  if (mode == 0) { // add a momentary button to cycle through modes
-    // normal
-    
-    for ( int y = 0; y < 16; y++) {
-      if (amplitude >= y) {
-        if (amplitude >= RED_THRESHOLD)
-          matrix.drawPixel(row_num, 15 - y, matrix.Color333(7, 0, 0));
-        else if (amplitude >= YELLOW_THRESHOLD)
-          matrix.drawPixel(row_num, 15 - y, matrix.Color333(4, 4, 0));
-        else if (amplitude >= GREEN_THRESHOLD)
-          matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 5, 0));
-        else
-          matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 7));
-      } else {
-        matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
-      }
-    }
+  int amplitude = int((amp_1024 * sensitivity) / 63.5);
 
-  } else {
-    // snowfall
+  if (amplitude > amp_max) amp_max = amplitude;
+  if (amp_max > 15) amp_max = 15;
 
-    if (amplitude >= row_max[row_num]) {
-      row_max[row_num] = amplitude;
+  for ( int y = 0; y < 16; y++) {
+    if (amplitude >= y) {
+      if (amplitude >= RED_THRESHOLD)
+        matrix.drawPixel(row_num, 15 - y, matrix.Color333(7, 0, 0));
+      else if (amplitude >= YELLOW_THRESHOLD)
+        matrix.drawPixel(row_num, 15 - y, matrix.Color333(4, 4, 0));
+      else if (amplitude >= GREEN_THRESHOLD)
+        matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 5, 0));
+      else
+        matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 7));
     } else {
-      if (row_max > 0)
-        row_max[row_num] -= 1;
-      amplitude = row_max[row_num];
-    }
-
-    for ( int y = 0; y < 16; y++) {
-      if (y == amplitude) {
-        if (amplitude > RED_THRESHOLD)
-          matrix.drawPixel(row_num, 15 - y, matrix.Color333(7, 0, 0));
-        else if (amplitude > YELLOW_THRESHOLD)
-          matrix.drawPixel(row_num, 15 - y, matrix.Color333(4, 4, 0));
-        else if (amplitude > GREEN_THRESHOLD)
-          matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 5, 0));
-        else
-          matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 7));
-      } else {
-        matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
-      }
+      matrix.drawPixel(row_num, 15 - y, matrix.Color333(0, 0, 0));
     }
   }
 }
 
+
 void loop() {
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+
+    // Serial.print(sensitivity);
+    // Serial.print(" ");
+    // Serial.println(amp_max);
+
+    if (amp_max < 10 and sensitivity <= MAX_SENSITIVITY) {
+      sensitivity += 1;
+      // Serial.println("increasing");
+    } else if (amp_max >= 15 and sensitivity > 0) {
+      sensitivity -= 1;
+      // Serial.println("decreasing");
+    }
+  }
 
   ReadFrequencies();
   // SerialOutput();
