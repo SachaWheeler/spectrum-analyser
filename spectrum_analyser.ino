@@ -176,24 +176,16 @@ void lightcolumns(unsigned int row_num, unsigned int amp_1024)
   }
 }
 
-int freeRam () {
-  extern int __heap_start, *__brkval; 
-  int v; 
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
-}
-
 void loop() {
   unsigned long currentMillis = millis();
 
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
 
-    if (amp_max < 10 and sensitivity <= MAX_SENSITIVITY) {
+    if (amp_max < 10 and sensitivity <= MAX_SENSITIVITY)
       sensitivity += 1;
-
-    } else if (amp_max >= 15 and sensitivity > 1) {
+    else if (amp_max >= 15 and sensitivity > 1)
       sensitivity -= 1;
-    }
 
     amp_max = 0;
   }
@@ -203,6 +195,4 @@ void loop() {
   PlotFrequencies();
 
   delay(20);
-  int ram = freeRam();
-  Serial.println(ram);
 }
