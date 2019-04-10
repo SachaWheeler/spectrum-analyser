@@ -22,8 +22,8 @@
 //Declare Spectrum Shield pin connections
 #define STROBE 12 // 4 on the shield, moved on the arduino due to library conflict with RGBmatrixPanel
 #define RESET 13 // 5 on the shield, moved on the arduino
-#define CHANNEL_ONE  A4 // A0 moved
-#define CHANNEL_TWO A5 // A1 moved
+#define CHANNEL_ONE  A5 // A1 moved
+#define CHANNEL_TWO A4 // A0 moved
 
 int freq_amp;
 int freq_left[7];
@@ -120,8 +120,6 @@ void PlotFrequencies() {
     left_total += freq_left[idx];
   }
 
-  lightcolumns(15, left_total / 7 );
-
   for (int j = 17; j < 31; j += 2) {
     int idx = (j - 17) / 2;
     lightcolumns(j, freq_right[idx]);
@@ -129,14 +127,15 @@ void PlotFrequencies() {
     right_total += freq_right[idx];
   }
 
-  lightcolumns(16, right_total / 7 );
+  lightcolumns(15, int(left_total / 7 ));
+  lightcolumns(16, int(right_total / 7 ));
 
   // lightcolumns(31, sensitivity - 1);
-  for ( int y = 0; y < 16; y++) {
-    if (y == sensitivity)
-      matrix.drawPixel(31, y, matrix.Color333(7, 7, 7));
+  for ( int k = 0; k < 16; k++) {
+    if (k == sensitivity)
+      matrix.drawPixel(31, k, matrix.Color333(7, 7, 7));
     else
-      matrix.drawPixel(31, y, matrix.Color333(0, 0, 0));
+      matrix.drawPixel(31, k, matrix.Color333(0, 0, 0));
   }
 
   matrix.swapBuffers(false);
