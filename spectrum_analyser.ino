@@ -78,11 +78,11 @@ void ReadFrequencies() {
   //Read frequencies for each band
   for (unsigned int freq_amp = 0; freq_amp < 7; freq_amp++)
   {
-    digitalWrite(STROBE, LOW);
-    delayMicroseconds(50); // gather some data
+    digitalWrite(STROBE, LOW);                          // go to the next band 
+    delayMicroseconds(50);                              // gather some data
     freq_left[freq_amp] = analogRead(CHANNEL_ONE);
     freq_right[freq_amp] = analogRead(CHANNEL_TWO);
-    digitalWrite(STROBE, HIGH);
+    digitalWrite(STROBE, HIGH);                         // reset the strobe pin
 
   }
 }
@@ -196,5 +196,5 @@ void loop() {
   // SerialOutput();
   PlotFrequencies();
 
-  // delay(20);
+  delay(20);
 }
